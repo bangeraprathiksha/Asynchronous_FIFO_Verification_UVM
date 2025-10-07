@@ -26,7 +26,7 @@ package fifo_pkg;
   `include "fifo_virtual_sequencer.sv"
   `include "fifo_virtual_sequence.sv"
 
-        `include "fifo_wr_rd_sequence.sv"
+
 
   //coverage
   `include "fifo_subscriber.sv"
