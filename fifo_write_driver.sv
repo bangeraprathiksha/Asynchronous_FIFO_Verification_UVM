@@ -1,3 +1,4 @@
+`include "defines.svh"
 class fifo_write_driver extends uvm_driver #(fifo_seq_item);
   `uvm_component_utils(fifo_write_driver)
 
@@ -16,8 +17,7 @@ class fifo_write_driver extends uvm_driver #(fifo_seq_item);
 
   task run_phase(uvm_phase phase);
     repeat(1) @(vif.drv_cb_write);
-    repeat(`no_of_trans) begin
-
+        repeat(`no_of_trans) begin
       seq_item_port.get_next_item(req);
          drive();
       seq_item_port.item_done();
@@ -26,8 +26,10 @@ class fifo_write_driver extends uvm_driver #(fifo_seq_item);
 
    task drive();
         @(vif.drv_cb_write);
+        vif.wrst_n <= req.wrst_n;
         vif.winc  <= req.winc;
         vif.wdata <= req.wdata;
         `uvm_info("WRITE_DRIVER", $sformatf("From WRITE DRIVER wrst_n= %0d, winc= %0d, wdata=%0d ",req.wrst_n,req.winc, req.wdata), UVM_MEDIUM)
+        //@(vif.drv_cb_write);
    endtask
 endclass
