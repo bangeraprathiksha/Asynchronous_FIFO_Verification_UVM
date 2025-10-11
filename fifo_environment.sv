@@ -1,4 +1,3 @@
-
 class fifo_environment extends uvm_env;
   `uvm_component_utils(fifo_environment)
 
