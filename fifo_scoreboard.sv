@@ -1,3 +1,4 @@
+`include "defines.svh"
 `uvm_analysis_imp_decl(_write)
 `uvm_analysis_imp_decl(_read)
 
@@ -6,10 +7,13 @@ class fifo_scoreboard extends uvm_scoreboard;
 
   uvm_analysis_imp_write #(fifo_seq_item, fifo_scoreboard) write_imp;
   uvm_analysis_imp_read  #(fifo_seq_item, fifo_scoreboard) read_imp;
+parameter int DEPTH = 1 << `ASIZE;
+  fifo_seq_item ref_q[$:DEPTH]; // queue for expected data
 
-  fifo_seq_item ref_q[$]; // queue for expected data
+        //fifo_seq_item wfull_check[$:DEPTH];
+
   int match, mismatch;
-
+static bit prev_wfull;//check for wfull case
   function new(string name, uvm_component parent);
     super.new(name, parent);
     write_imp = new("write_imp", this);
@@ -22,23 +26,22 @@ class fifo_scoreboard extends uvm_scoreboard;
 
 
 function void write_write(fifo_seq_item t);
-  if (t.wrst_n && t.winc && !t.wfull && !$isunknown(t.wdata)) begin
+  if (t.wrst_n && t.winc && !prev_wfull && (t.wdata !== 'x)) begin
     ref_q.push_back(t);
-    `uvm_info("SCOREBOARD_WRITE",
-      $sformatf("PUSH: Stored %0d in ref_q (size=%0d, wfull=%0d)",
-                t.wdata, ref_q.size(), t.wfull),
-      UVM_LOW)
+    `uvm_info("SCOREBOARD_WRITE", $sformatf("PUSH: Stored %0d in ref_q (size=%0d, wfull=%0d)",t.wdata, ref_q.size(), t.wfull),UVM_LOW)
   end
-  else if (t.wfull) begin
+  else if (prev_wfull) begin
     `uvm_info("SCOREBOARD_WRITE",
       "???????? FIFO IS FULL - CANNOT WRITE FURTHER ????????",
       UVM_LOW)
   end
+        prev_wfull = t.wfull;
+
 endfunction
 
 
 function void write_read(fifo_seq_item t);
-  if (t.rrst_n && t.rinc && !t.rempty && !$isunknown(t.rdata)) begin
+  if (t.rrst_n && t.rinc && !t.rempty && (t.rdata !== 'x)) begin
     if (ref_q.size() > 0) begin
       fifo_seq_item exp = ref_q.pop_front();
 
