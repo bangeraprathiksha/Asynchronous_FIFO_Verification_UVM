@@ -5,7 +5,7 @@ class fifo_read_monitor extends uvm_monitor;
 
   uvm_analysis_port#(fifo_seq_item) read_ap;
   virtual fifo_interface vif;
-
+ fifo_seq_item t;
 uvm_analysis_port #(fifo_seq_item) read_cg_port;
 
   function new(string name, uvm_component parent);
@@ -21,14 +21,15 @@ uvm_analysis_port #(fifo_seq_item) read_cg_port;
   endfunction
 
   task run_phase(uvm_phase phase);
-    fifo_seq_item t;
+//      @(vif.mon_cb_read);
     forever begin
-      @(posedge vif.rclk);
+        @(vif.mon_cb_read);
       t = fifo_seq_item::type_id::create("t");
       t.rrst_n  = vif.rrst_n;
       t.rinc    = vif.rinc;
       t.rdata   = vif.rdata;
       t.rempty  = vif.rempty;
+
 
       if (t.rrst_n && t.rinc && !t.rempty && t.rdata !== 'x) begin
         `uvm_info("FIFO_READ_MONITOR",
@@ -45,8 +46,11 @@ uvm_analysis_port #(fifo_seq_item) read_cg_port;
                     $time, t.rrst_n, t.rinc, t.rdata, t.rempty),
           UVM_MEDIUM)
      end
+
+
         read_ap.write(t);
         read_cg_port.write(t);
+        //repeat(2)@(vif.mon_cb_read);
     end
   endtask
 endclass
