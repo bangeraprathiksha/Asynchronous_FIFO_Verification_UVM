@@ -1,5 +1,8 @@
+
 `include "defines.svh"
-interface fifo_interface(input logic wclk, input logic rclk, input logic wrst_n, input logic rrst_n);
+interface fifo_interface(input logic wclk, input logic rclk);
+        logic wrst_n;
+        logic rrst_n;
         logic winc;
         logic rinc;
         logic [`DSIZE -1 :0] wdata;
@@ -9,19 +12,19 @@ interface fifo_interface(input logic wclk, input logic rclk, input logic wrst_n,
         logic wfull;
 
         clocking drv_cb_write @(posedge wclk);
-                output  winc, wdata;
+                output wrst_n , winc, wdata;
         endclocking
 
         clocking mon_cb_write @(posedge wclk);
-                input #1ns  winc, wdata, wfull; // sample after 1-ns
+                input #1ns wrst_n, winc, wdata, wfull; // sample after 1-ns
         endclocking
 
         clocking drv_cb_read @(posedge rclk);
-                output rinc;
+                output rrst_n, rinc;
         endclocking
 
         clocking mon_cb_read @(posedge rclk);
-                input #1ns rinc, rdata, rempty;
+                input #1ns rrst_n, rinc, rdata, rempty;
         endclocking
 
 
@@ -32,7 +35,6 @@ interface fifo_interface(input logic wclk, input logic rclk, input logic wrst_n,
         modport MON_WRITE( clocking mon_cb_write);
 
         modport MON_READ( clocking mon_cb_read);
-
 
         //assertion checks
 
@@ -101,5 +103,7 @@ assert property(six)
   $info("rrst_n reset check passed");
 else
   $error("rrst_n reset check FAILED");
+
+
 
 endinterface
