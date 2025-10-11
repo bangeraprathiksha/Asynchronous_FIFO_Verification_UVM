@@ -29,7 +29,9 @@ module top;
   end
 
   // Instantiate interface
-  fifo_interface fifo_if (.wclk(wclk), .rclk(rclk), .wrst_n(wrst_n), .rrst_n(rrst_n));
+//  fifo_interface fifo_if (.wclk(wclk), .rclk(rclk), .wrst_n(wrst_n), .rrst_n(rrst_n));
+
+ fifo_interface fifo_if (.wclk(wclk), .rclk(rclk));
 
   // DUT instantiation
   FIFO #( .DSIZE(`DSIZE), .ASIZE(`ASIZE) ) dut (
@@ -46,19 +48,12 @@ module top;
     .rempty (fifo_if.rempty)
   );
 
-  // Reset generation
-  initial begin
-    wrst_n = 0;
-    rrst_n = 0;
-    #50;
-    wrst_n = 1;
-    rrst_n = 1;
-  end
 
 
   //Connect virtual interface to UVM
   initial begin
     uvm_config_db#(virtual fifo_interface)::set(null, "*", "vif", fifo_if);
     run_test("fifo_test");
+        $finish();
 end
 endmodule
